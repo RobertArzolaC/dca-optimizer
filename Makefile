@@ -1,125 +1,150 @@
 # ============================================================================
-# DCA OPTIMIZER - Makefile con Ayuda Automática
+# DCA OPTIMIZER - Makefile Refactorizado
 # ============================================================================
 
 PROJECT_DIR := $(HOME)/dca-optimizer
 VENV := $(PROJECT_DIR)/venv/bin/activate
-LOG_FILE := $(PROJECT_DIR)/dca.log
-DB_FILE := $(PROJECT_DIR)/dca_history.db
+PYTHON := cd $(PROJECT_DIR) && . $(VENV) && python3
+
+.PHONY: help buy sell logs dashboard backtest install test
 
 # ----------------------------------------------------------------------------
-# HELP AUTO-GENERADO
+# HELP
 # ----------------------------------------------------------------------------
-# Cualquier comando que tenga un comentario con "##" aparecerá en make help
 
 help: ## Muestra todos los comandos disponibles
 	@echo ""
-	@echo "📘 Comandos disponibles para DCA Optimizer:"
-	@echo "-------------------------------------------"
+	@echo "📘 DCA Optimizer - Comandos disponibles:"
+	@echo "========================================="
 	@grep -E '^[a-zA-Z_-]+:.*?##' Makefile | sed 's/:.*##/: /' | column -t -s ':'
 	@echo ""
 
 # ============================================================================
-# 1. LOGS
+# INSTALACIÓN
 # ============================================================================
+
+install: ## Instalar dependencias y crear entorno virtual
+	cd $(PROJECT_DIR) && python3 -m venv venv
+	. $(VENV) && pip install --upgrade pip
+	. $(VENV) && pip install pandas requests
+
+# ============================================================================
+# COMPRA (BUY)
+# ============================================================================
+
+buy: ## Ejecutar bot de compra
+	$(PYTHON) dca_buy.py
+
+buy-dry: ## Ejecutar bot de compra (sin notificación)
+	$(PYTHON) dca_buy.py --dry-run
+
+buy-history: ## Ver historial de señales de compra
+	$(PYTHON) dca_utils.py buy history 20
+
+# ============================================================================
+# VENTA (SELL)
+# ============================================================================
+
+sell: ## Ejecutar bot de venta
+	$(PYTHON) dca_sell.py
+
+sell-dry: ## Ejecutar bot de venta (sin notificación)
+	$(PYTHON) dca_sell.py --dry-run
+
+sell-force: ## Ejecutar bot de venta (forzar notificación)
+	$(PYTHON) dca_sell.py --force
+
+sell-position: ## Ver estado de la posición
+	$(PYTHON) dca_utils.py sell position
+
+sell-signals: ## Ver últimas señales de venta
+	$(PYTHON) dca_utils.py sell signals 20
+
+sell-record: ## Registrar venta manual (make sell-record btc=0.05 price=95000)
+	$(PYTHON) dca_utils.py sell record $(btc) $(price)
+
+# ============================================================================
+# DASHBOARD Y MONITOREO
+# ============================================================================
+
+dashboard: ## Ver dashboard combinado
+	$(PYTHON) dca_utils.py dashboard
 
 logs: ## Ver logs en tiempo real
-	tail -f $(LOG_FILE)
+	tail -f $(PROJECT_DIR)/dca.log
+
+logs-sell: ## Ver logs de sell en tiempo real
+	tail -f $(PROJECT_DIR)/sell.log
 
 # ============================================================================
-# 2. EJECUCIÓN MANUAL
-# ============================================================================
-
-run: ## Ejecutar el bot manualmente
-	$(PROJECT_DIR)/run_dca.sh
-
-# ============================================================================
-# 3. SQLITE: HISTORIAL DE SEÑALES
-# ============================================================================
-
-history: ## Mostrar últimas señales desde SQLite
-	sqlite3 $(DB_FILE) "SELECT * FROM signals ORDER BY timestamp DESC LIMIT 10;"
-
-# ============================================================================
-# 4. EXPORT PARA BACKTESTING
-# ============================================================================
-
-export: ## Generar dataset para backtesting
-	cd $(PROJECT_DIR) && \
-		. $(VENV) && \
-		python3 dca_backtest.py export
-
-# ============================================================================
-# 5. BACKTEST
-# ============================================================================
-
-backtest: ## Correr backtest de 365 días
-	cd $(PROJECT_DIR) && \
-		. $(VENV) && \
-		python3 dca_backtest.py backtest 365
-
-backtest-custom: ## Correr backtest con días personalizados (make backtest-custom days=180)
-	cd $(PROJECT_DIR) && \
-		. $(VENV) && \
-		python3 dca_backtest.py backtest $(days)
-
-# ============================================================================
-# 6. MONITOREO DEL CRON
+# CRON Y SISTEMA
 # ============================================================================
 
 cron: ## Revisar últimas ejecuciones del CRON
-	grep CRON /var/log/syslog | tail -20
+	grep -i "dca\|CRON" /var/log/syslog 2>/dev/null | tail -20 || \
+	grep -i "dca\|CRON" /var/log/cron.log 2>/dev/null | tail -20 || \
+	echo "No se encontraron logs de cron"
 
-last-run: ## Ver última ejecución registrada y últimos logs
-	ls -la $(DB_FILE)
-	tail -50 $(LOG_FILE)
-
-# ============================================================================
-# 7. DCA SELL OPTIMIZER
-# ============================================================================
-
-SELL_PROJECT := $(HOME)/dca-optimizer
-SELL_LOG := $(SELL_PROJECT)/sell.log
-SELL_DB := $(SELL_PROJECT)/dca_sell_history.db
-SELL_VENV := $(SELL_PROJECT)/venv/bin/activate
-
-sell-logs: ## Ver logs del DCA Sell en tiempo real
-	@tail -f $(SELL_LOG)
-
-sell-position: ## Ver estado actual de la posición
-	cd $(SELL_PROJECT) && \
-		. $(SELL_VENV) && \
-		python3 dca_sell_utils.py position
-
-sell-signals: ## Ver últimas señales de venta (make sell-signals n=20)
-	cd $(SELL_PROJECT) && \
-		. $(SELL_VENV) && \
-		python3 dca_sell_utils.py signals $(n)
-
-sell-register: ## Registrar venta manual (make sell-register amount=0.05 price=95000)
-	cd $(SELL_PROJECT) && \
-		. $(SELL_VENV) && \
-		python3 dca_sell_utils.py sell $(amount) $(price)
-
-sell-performance: ## Ver rendimiento del bot de ventas
-	cd $(SELL_PROJECT) && \
-		. $(SELL_VENV) && \
-		python3 dca_sell_utils.py performance
-
-sell-export: ## Exportar dataset de ventas
-	cd $(SELL_PROJECT) && \
-		. $(SELL_VENV) && \
-		python3 dca_sell_utils.py export
-
-sell-db: ## Ver últimas señales directamente desde SQLite
-	sqlite3 $(SELL_DB) "SELECT * FROM sell_signals ORDER BY timestamp DESC LIMIT 5;"
+cron-install: ## Instalar crontabs recomendados
+	@echo "Agregar estas líneas a tu crontab (crontab -e):"
+	@echo ""
+	@echo "# DCA Buy - Domingo 03:00 UTC"
+	@echo "0 3 * * 0 cd $(PROJECT_DIR) && . venv/bin/activate && python dca_buy.py >> dca.log 2>&1"
+	@echo ""
+	@echo "# DCA Sell - Cada 4 horas"
+	@echo "0 */4 * * * cd $(PROJECT_DIR) && . venv/bin/activate && python dca_sell.py >> sell.log 2>&1"
 
 # ============================================================================
-# 8. SUMMARY
+# BACKTEST
 # ============================================================================
 
-summary: ## Resumen de operaciones realizadas
-	cd $(SELL_PROJECT) && \
-		. $(SELL_VENV) && \
-		python3 dca_dashboard.py
+backtest: ## Correr backtest de 365 días
+	$(PYTHON) -c "from dca_backtest import *; \
+		df = fetch_historical_data(365); \
+		results = backtest_strategy(df); \
+		analyze_backtest(results)"
 
+backtest-timing: ## Analizar patrones de timing
+	$(PYTHON) -c "from dca_backtest import *; \
+		df = fetch_historical_data(180); \
+		analyze_day_of_week_patterns(df)"
+
+# ============================================================================
+# DATABASE
+# ============================================================================
+
+db-buy: ## Ver últimas señales de compra desde SQLite
+	sqlite3 $(PROJECT_DIR)/dca_history.db \
+		"SELECT timestamp, signal_type, price, suggested_amount FROM signals ORDER BY timestamp DESC LIMIT 10;"
+
+db-sell: ## Ver últimas señales de venta desde SQLite
+	sqlite3 $(PROJECT_DIR)/dca_sell_history.db \
+		"SELECT timestamp, signal_type, risk_score, sell_percentage FROM sell_signals ORDER BY timestamp DESC LIMIT 10;"
+
+db-position: ## Ver posición desde SQLite
+	sqlite3 $(PROJECT_DIR)/dca_sell_history.db \
+		"SELECT total_btc, sold_btc, (total_btc - sold_btc) as remaining, cost_basis FROM position;"
+
+# ============================================================================
+# TESTING
+# ============================================================================
+
+test: ## Ejecutar tests
+	$(PYTHON) -m pytest tests/ -v
+
+test-notify: ## Probar notificación de Telegram
+	$(PYTHON) -c "from core.notifications import notifier; \
+		notifier.notify_custom('🧪 Test de notificación DCA Optimizer')"
+
+# ============================================================================
+# LIMPIEZA
+# ============================================================================
+
+clean-logs: ## Limpiar logs antiguos (>30 días)
+	find $(PROJECT_DIR) -name "*.log" -mtime +30 -delete
+	@echo "Logs antiguos eliminados"
+
+clean-cache: ## Limpiar cache de Python
+	find $(PROJECT_DIR) -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	find $(PROJECT_DIR) -type f -name "*.pyc" -delete 2>/dev/null || true
+	@echo "Cache limpiado"
