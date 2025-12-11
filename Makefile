@@ -2,7 +2,7 @@
 # DCA OPTIMIZER - Makefile Refactorizado
 # ============================================================================
 
-PROJECT_DIR := $(HOME)/dca-optimizer
+PROJECT_DIR := $(HOME)/Documents/Projects/Personal/dca-optimizer
 VENV := $(PROJECT_DIR)/venv/bin/activate
 PYTHON := cd $(PROJECT_DIR) && . $(VENV) && python3
 
@@ -114,15 +114,15 @@ backtest-timing: ## Analizar patrones de timing
 # ============================================================================
 
 db-buy: ## Ver últimas señales de compra desde SQLite
-	sqlite3 $(PROJECT_DIR)/dca_history.db \
+	sqlite3 $(PROJECT_DIR)/dca.db \
 		"SELECT timestamp, signal_type, price, suggested_amount FROM signals ORDER BY timestamp DESC LIMIT 10;"
 
 db-sell: ## Ver últimas señales de venta desde SQLite
-	sqlite3 $(PROJECT_DIR)/dca_sell_history.db \
+	sqlite3 $(PROJECT_DIR)/dca.db \
 		"SELECT timestamp, signal_type, risk_score, sell_percentage FROM sell_signals ORDER BY timestamp DESC LIMIT 10;"
 
 db-position: ## Ver posición desde SQLite
-	sqlite3 $(PROJECT_DIR)/dca_sell_history.db \
+	sqlite3 $(PROJECT_DIR)/dca.db \
 		"SELECT total_btc, sold_btc, (total_btc - sold_btc) as remaining, cost_basis FROM position;"
 
 # ============================================================================
