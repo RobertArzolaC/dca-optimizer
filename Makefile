@@ -2,7 +2,7 @@
 # DCA OPTIMIZER - Makefile Refactorizado
 # ============================================================================
 
-PROJECT_DIR := $(HOME)/Documents/Projects/Personal/dca-optimizer
+PROJECT_DIR := $(HOME)/dca-optimizer
 VENV := $(PROJECT_DIR)/venv/bin/activate
 PYTHON := cd $(PROJECT_DIR) && . $(VENV) && python3
 
