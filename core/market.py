@@ -61,19 +61,21 @@ class MarketDataService:
         df.set_index("date", inplace=True)
         df = df.resample("D").last()
         
-        # Calcular MAs
-        df["ma7"] = df["price"].rolling(7).mean()
-        df["ma21"] = df["price"].rolling(21).mean()
-        df["ma50"] = df["price"].rolling(50).mean()
-        df["ma200"] = df["price"].rolling(200).mean()
+        # Calcular MAs (usar min_periods para evitar NaN innecesarios)
+        df["ma7"] = df["price"].rolling(7, min_periods=1).mean()
+        df["ma21"] = df["price"].rolling(21, min_periods=1).mean()
+        df["ma50"] = df["price"].rolling(50, min_periods=1).mean()
+        df["ma200"] = df["price"].rolling(200, min_periods=1).mean()
         
         # RSI
         df["rsi"] = self.calculate_rsi(df["price"], 14)
+        df["rsi"] = df["rsi"].fillna(50)  # Neutral si no hay suficientes datos
         
         # Cambio 7d
         df["pct_7d"] = df["price"].pct_change(7) * 100
+        df["pct_7d"] = df["pct_7d"].fillna(0)
         
-        self._historical_cache = df.dropna()
+        self._historical_cache = df.dropna(subset=["price"])
         return self._historical_cache
     
     # ========================================================================

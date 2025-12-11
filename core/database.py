@@ -216,7 +216,7 @@ class SellRepository(BaseRepository):
     """Repositorio para señales de venta"""
     
     def __init__(self, db_path: Path = None):
-        super().__init__(db_path)
+        super().__init__(db_path or config.db_path)
     
     def _init_tables(self):
         with self.connection() as conn:
