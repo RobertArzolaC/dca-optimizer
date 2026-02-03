@@ -1,16 +1,9 @@
-#!/usr/bin/env python3
-"""
-DCA Optimizer - Estrategias de Trading
-Strategy Pattern para buy/sell decisions
-"""
-
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Protocol
 
 import pandas as pd
 
-from .config import config, SignalType, RiskLevel
+from core.config import config
+from core.enums import RiskLevel, SignalType
 from .database import MarketData, BuySignal, SellSignal, Indicator, Position
 from .market import market_service
 

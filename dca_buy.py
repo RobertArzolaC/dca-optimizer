@@ -1,17 +1,7 @@
-#!/usr/bin/env python3
-"""
-DCA Buy Optimizer - Script Principal
-Ejecutar via cronjob: 0 3 * * 0 (Domingo 03:00 UTC)
-
-Ejemplo de uso:
-    python dca_buy.py           # Ejecución normal
-    python dca_buy.py --dry-run # Sin enviar notificación
-"""
-
 import sys
 from datetime import datetime
 
-from core.config import config, SignalType
+from core.enums import SignalType
 from core.database import BuyRepository
 from core.market import market_service
 from core.notifications import notifier

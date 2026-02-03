@@ -1,34 +1,15 @@
-#!/usr/bin/env python3
-"""
-DCA Optimizer - Configuración Centralizada
-Singleton pattern para configuración global
-"""
-
 import os
 from dataclasses import dataclass, field
-from enum import Enum
 from pathlib import Path
 
+from dotenv import load_dotenv
 
-class SignalType(Enum):
-    """Tipos de señal unificados para buy/sell"""
-    # Buy signals
-    TURBO_BUY = "TURBO_BUY"
-    EXTRA_BUY = "EXTRA_BUY"
-    NORMAL_DCA = "NORMAL_DCA"
-    SKIP = "SKIP"
-    # Sell signals
-    SELL = "SELL"
-    ALERT = "ALERT"
-    HOLD = "HOLD"
+from core.enums import SignalType
 
 
-class RiskLevel(Enum):
-    """Niveles de riesgo para indicadores"""
-    SAFE = "SAFE"
-    WARNING = "WARNING"
-    DANGER = "DANGER"
-    CRITICAL = "CRITICAL"
+# Esto busca el archivo .env en la misma carpeta del script
+env_path = Path(__file__).parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 
 @dataclass

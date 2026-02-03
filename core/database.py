@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-DCA Optimizer - Capa de Base de Datos
-Repository Pattern para acceso unificado a SQLite
-"""
-
 import json
 import sqlite3
 from abc import ABC, abstractmethod
@@ -13,7 +7,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from .config import config, SignalType, RiskLevel
+from core.config import config
+from core.enums import RiskLevel, SignalType
 
 
 # ============================================================================
@@ -105,6 +100,8 @@ class BaseRepository(ABC):
     
     def __init__(self, db_path: Path):
         self.db_path = db_path
+        # Crear directorio si no existe
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_tables()
     
     @contextmanager

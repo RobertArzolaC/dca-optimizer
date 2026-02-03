@@ -1,22 +1,7 @@
-#!/usr/bin/env python3
-"""
-DCA Sell Optimizer - Script Principal
-Ejecutar via cronjob cada 4-6 horas:
-    0 */4 * * * python dca_sell.py
-
-Para ventas óptimas (horario institucional):
-    0 15,19 * * 1-5 python dca_sell.py
-
-Ejemplo de uso:
-    python dca_sell.py           # Ejecución normal
-    python dca_sell.py --dry-run # Sin enviar notificación
-    python dca_sell.py --force   # Forzar notificación aunque sea HOLD
-"""
-
 import sys
 from datetime import datetime
 
-from core.config import config, SignalType
+from core.enums import SignalType
 from core.database import SellRepository
 from core.market import market_service
 from core.notifications import notifier

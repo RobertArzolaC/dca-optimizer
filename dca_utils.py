@@ -18,13 +18,8 @@ Uso:
 import sys
 from datetime import datetime
 
-import requests
-
-from core.config import config, SignalType
 from core.database import BuyRepository, SellRepository
 from core.market import market_service
-from core.notifications import notifier
-from core.strategies import StrategyFactory
 
 
 # ============================================================================
