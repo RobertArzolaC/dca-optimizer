@@ -38,8 +38,6 @@ class DCABuyStrategy:
         self.config = config.buy
     
     def evaluate(self, market_data: MarketData) -> BuySignal:
-        reasons = []
-        
         # Check SKIP primero
         if market_data.rsi > self.config.rsi_overbought:
             return self._create_signal(
@@ -50,7 +48,6 @@ class DCABuyStrategy:
         
         # Check TURBO_BUY conditions
         turbo_reasons = []
-        
         ma7_threshold = market_data.ma7 * self.config.ma_dip_threshold
         if market_data.price < ma7_threshold:
             turbo_reasons.append(
