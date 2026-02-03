@@ -141,7 +141,7 @@ test-notify: ## Probar notificación de Telegram
 # ============================================================================
 
 clean-logs: ## Limpiar logs antiguos (>30 días)
-	find $(PROJECT_DIR) -name "*.log" -mtime +30 -delete
+	find $(PROJECT_DIR) -name "dca.log" -mtime +30 -delete
 	@echo "Logs antiguos eliminados"
 
 clean-cache: ## Limpiar cache de Python
